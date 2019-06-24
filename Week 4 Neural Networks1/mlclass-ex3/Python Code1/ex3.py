@@ -6,7 +6,6 @@ Created on Thu May 30 11:46:34 2019
 """
 
 import sys
-import math
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io
@@ -20,49 +19,47 @@ num_labels = 10 # 10 labels, from 1 to 10 (note that we have mapped 0 to label 1
 ============ Part 1: Loading and Visualizing Data ============
 '''
 def displayData(X, example_width=None):
-    plt.close()
-    plt.figure()
-    
-    if X.ndim == 1:
-        X = np.reshape(X, (-1, X.shape[0]))
+    if example_width == None:
+            example_width = int(np.round(np.sqrt(np.shape(X)[1])))
         
-    if not example_width or not 'example_width' in locals():
-        example_width = int(round(math.sqrt(X.shape[1])))
-    
-    plt.set_cmap("")
-    
-    m, n = X.shape
-    example_height = n / example_width
-    
-    display_rows = int(math.floor(math.sqrt(m)))
-    display_cols = int(math.ceil(m / display_rows))
-    
+    m, n = np.shape(X)
+    example_height = int(n/example_width)
+        
+    # Compute number of items to display
+    display_rows = int(np.floor(np.sqrt(m)))
+    display_cols = int(np.ceil(m/display_rows))
+        
+    # Beteen images padding
     pad = 1
-    
-    display_array = - np.ones((pad + display_rows * (example_height + pad), pad + display_cols * (example_width + pad)))
-    
-    curr_ex = 1
-    for j in range(1, display_rows+1):
-        for i in range(1, display_cols+1):
+        
+    # Setup blank display
+    display_array = -np.ones((pad+display_rows*(example_height + pad), \
+                pad + display_cols * (example_width + pad)))
+    # Copy each example into a patch on the display array
+    curr_ex = 0
+    for j in range(display_rows):
+        for i in range(display_cols):
             if curr_ex > m:
                 break
-            
-            max_val = max(abs(X[curr_ex-1, :]))
-            rows = pad + (j - 1) * (example_height + pad) + np.array(range(example_height))
-            cols = pad + (i - 1) * (example_width  + pad) + np.array(range(example_width ))
-            
-            display_array[rows[0]:rows[-1]+1 , cols[0]:cols[-1]+1] = np.reshape(X[curr_ex-1, :], (example_height, example_width), order="F") / max_val
+            # Copy the patch and get the max value of the patch
+            max_val = np.max(np.abs(X[curr_ex,:]))
+            initial_x = pad + j * (example_height + pad)
+            initial_y =pad + i * (example_width + pad)
+            display_array[initial_x:initial_x+example_height, \
+                        initial_y:initial_y+example_width] = \
+                         X[curr_ex, :].reshape(example_height, example_width)\
+                         / max_val
             curr_ex += 1
-        
         if curr_ex > m:
             break
-        
-    h = plt.imshow(display_array, vmin=-1, vmax=1)
     
-    plt.axis('off')
-    plt.show(block=False)
     
-    return h, display_array        
+    # Display image
+    img = scipy.misc.toimage(display_array)
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.imshow(img)  
+    plt.show()          
 
 print("Plotting data with + indicating (y = 1) examples and o indicating (y = 0) examples \n")
 # Loading Data
